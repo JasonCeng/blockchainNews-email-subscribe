@@ -22,17 +22,11 @@ HEADERS = {
 MAIL_ENCODING = "utf8"
 
 # 隐私数据存放在环境变量中
-# MAIL_HOST = os.environ.get("MAIL_HOST")
-# MAIL_PORT = 465 #固定端口
-# MAIL_USER = os.environ.get("MAIL_USER")
-# MAIL_PASS = os.environ.get("MAIL_PASS")
-# MAIL_SENDER = os.environ.get("MAIL_SENDER")
-
-MAIL_HOST = 'smtp.qq.com'#固定写死
+MAIL_HOST = os.environ.get("MAIL_HOST") #'smtp.qq.com'#固定写死
 MAIL_PORT = 465 #固定端口
-MAIL_USER = '489281085@qq.com'
-MAIL_PASS = 'cbhmyvshjzpnbjie' #授权码（这个要填自己获取到的）
-MAIL_SENDER = '489281085@qq.com'
+MAIL_USER = os.environ.get("MAIL_USER")
+MAIL_PASS = os.environ.get("MAIL_PASS") #授权码（这个要填自己获取到的）
+MAIL_SENDER = os.environ.get("MAIL_SENDER")
 
 today = datetime.datetime.now().date()
 EMAIL_TITLE = "区块链咨询早报" + str(today) + "📅"
