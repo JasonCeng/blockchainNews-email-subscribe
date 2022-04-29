@@ -1,0 +1,33 @@
+name: 'GitHub Actions Blockchain News Bot'
+
+on:
+  push:
+    branches: [ main ]
+  # schedule:
+  #   - cron: '0 21 * * *'
+
+env:
+  MAIL_HOST: ${{ secrets.MAIL_HOST }}
+  MAIL_PORT: ${{ secrets.MAIL_PORT }}
+  MAIL_USER: ${{ secrets.MAIL_USER }}
+  MAIL_PASS: ${{ secrets.MAIL_PASS }}
+  MAIL_SENDER: ${{ secrets.MAIL_SENDER }}
+
+jobs:
+  bot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout codes'
+        uses: actions/checkout@v3
+      - name: Set up Python 3.6
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.6'
+      - name: 'Install dependencies'
+        run: |
+          python3 -m pip install --upgrade pip
+          pip install flake8 pytest
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      - name: 'Run python app'
+        run: |
+          python3 core.py
