@@ -3,6 +3,7 @@ name: 'GitHub Actions Blockchain News Bot'
 on:
   push:
     branches: [ main ]
+  # update
   # schedule:
   #   - cron: '0 21 * * *'
 
