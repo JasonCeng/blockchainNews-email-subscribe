@@ -2,12 +2,18 @@
 # coding=utf-8
 
 import os
+import time
 import datetime
 import requests
 import smtplib
+import re
 from email.header import Header
 from email.mime.text import MIMEText
 from bs4 import BeautifulSoup
+import matplotlib.pyplot as plt
+import jieba # cutting Chinese sentences into words
+from collections import Counter
+from wordcloud import WordCloud,STOPWORDS
 
 from receivers import MAIL_RECEIVER
 
@@ -17,7 +23,9 @@ HEADERS = {
     "X-Requested-With": "XMLHttpRequest",
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 "
     "(KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36",
+    "Connection": "close",
 }
+requests.DEFAULT_RETRIES = 5
 
 MAIL_ENCODING = "utf8"
 
@@ -31,6 +39,9 @@ MAIL_SENDER = os.environ.get("MAIL_SENDER")
 today = datetime.datetime.now().date()
 EMAIL_TITLE = "区块链资讯早报" + str(today) + "📅"
 
+FONTS_PATH = "./fonts/msyh.ttc"
+STOP_WORDS_PATH = "./config/stop_words.txt"
+
 def crawl_news(pageNum):
     """
     爬取百度咨询前pageNum页新闻标题
@@ -38,11 +49,15 @@ def crawl_news(pageNum):
     # print("pageNum:",pageNum)
     titlesText = ''
 
+    s = requests.session()
+    s.keep_alive = False
+
     for i in range(pageNum):
         START_URL = PRE_URL + str(i * 10)
         # print(START_URL)
         titlesText += "</br>" + "<a href='" + START_URL + "'>" + "查看搜索详情页面" + "</a></br>"
 
+        # time.sleep(60)
         resp = requests.get(START_URL, headers=HEADERS)
         resp.encoding = 'utf-8'
         soup = BeautifulSoup(resp.text,'html.parser')  # 'html.parser'这是BeautifulSoup库的HTML解析器的用法,用于解析HTML
@@ -69,16 +84,18 @@ def build_emailHTML(content):
         <body>
             <div>
                 <h1>{0}</h1>
-                <p>{1}</p>
+                <div><image src="{1}"><div>
+                <p>{2}</p>
             <div>
         </body>
         </html>
     """
     # print(today)
     # print(str(html.format(today, content)))
-    return html.format(EMAIL_TITLE, content)
+    IMAGE_HREF = "https://github.com/JasonCeng/blockchainNews-email-subscribe/wordcloud/single_wcd.png"
+    return html.format(EMAIL_TITLE, IMAGE_HREF, content)
 
-def send_email(title,content):
+def send_email(title, content):
     """
     发送邮件
     """
@@ -96,10 +113,47 @@ def send_email(title,content):
         print('Email send fail:' + str(e))
     print('Email send success')
 
+def cut_word(text):
+    """
+    利用jieba对text进行分词处理，排除长度为1的词
+    """
+    # 加载自定义停用词
+    STOPWORDS_CH = open(STOP_WORDS_PATH, encoding='utf8').read().split()
+    # 去除字母、数字、标点符号
+    preText = re.sub('[A-Za-z0-9\[\`\~\!\@\#\$\^\&\*\(\)\=\|\{\}\'\:\;\'\,\[\]\.\<\>\/\?\~\。\@\#\\\&\*\%]', '', text)
+    # 进行jieba分词并剔除停用词及长度为1的词
+    word_list = [
+        w for w in jieba.cut(preText) 
+        if w not in set(STOPWORDS_CH) and len(w) > 1
+        ]
+    # for word in word_list:
+    #     print(word)
+    return word_list
+
+def generate_wordcloud(word_list):
+    freq = dict(Counter(word_list))
+    wcd = WordCloud(font_path=FONTS_PATH, stopwords=STOPWORDS, background_color='white')
+    wcd.generate_from_frequencies(freq)
+    return wcd
+
+def plt_imshow(x, ax=None, show=True):
+    if ax is None:
+        fig, ax = plt.subplots()
+    ax.imshow(x)
+    ax.axis("off")
+    # if show: plt.show()
+    return ax
+
+def save_wordcloud(ax):
+    ax.figure.savefig(f'./wordcloud/single_wcd.png', bbox_inches='tight', dpi=1000)
 
 if __name__ == "__main__":
     print("----------test crawl_news start----------")
     pageNum = 5
     content = crawl_news(pageNum)
+    word_list = cut_word(content)
+    wcd = generate_wordcloud(word_list)
+    ax = plt_imshow(wcd,)
+    save_wordcloud(ax)
     send_email(EMAIL_TITLE, content)
     print("----------test crawl_news end----------")
