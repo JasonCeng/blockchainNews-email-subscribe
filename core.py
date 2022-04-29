@@ -84,7 +84,7 @@ def build_emailHTML(content):
         <body>
             <div>
                 <h1>{0}</h1>
-                <div><image src="{1}"><div>
+                <div><image src="{1}" style="width: 1031.8px; height: 536px;"><div>
                 <p>{2}</p>
             <div>
         </body>
@@ -92,7 +92,7 @@ def build_emailHTML(content):
     """
     # print(today)
     # print(str(html.format(today, content)))
-    IMAGE_HREF = "https://github.com/JasonCeng/blockchainNews-email-subscribe/wordcloud/single_wcd.png"
+    IMAGE_HREF = "https://github.com/JasonCeng/blockchainNews-email-subscribe/blob/main/wordcloud/single_wcd.png"
     return html.format(EMAIL_TITLE, IMAGE_HREF, content)
 
 def send_email(title, content):
