@@ -29,7 +29,7 @@ MAIL_PASS = os.environ.get("MAIL_PASS") #授权码（这个要填自己获取到
 MAIL_SENDER = os.environ.get("MAIL_SENDER")
 
 today = datetime.datetime.now().date()
-EMAIL_TITLE = "区块链咨询早报" + str(today) + "📅"
+EMAIL_TITLE = "区块链资讯早报" + str(today) + "📅"
 
 def crawl_news(pageNum):
     """
