@@ -31,13 +31,13 @@ MAIL_ENCODING = "utf8"
 
 # 隐私数据存放在环境变量中
 MAIL_HOST = os.environ.get("MAIL_HOST") #'smtp.qq.com'#固定写死
-MAIL_PORT = 465 #固定端口
+MAIL_PORT = 587 #固定端口
 MAIL_USER = os.environ.get("MAIL_USER")
 MAIL_PASS = os.environ.get("MAIL_PASS") #授权码（这个要填自己获取到的）
 MAIL_SENDER = os.environ.get("MAIL_SENDER")
 
 today = datetime.datetime.now().date()
-EMAIL_TITLE = "区块链资讯早报" + str(today) + "📅"
+EMAIL_TITLE = "区块链资讯午报" + str(today)
 
 FONTS_PATH = "./fonts/msyh.ttc"
 STOP_WORDS_PATH = "./config/stop_words.txt"
@@ -100,16 +100,18 @@ def send_email(title, content):
     """
     content = build_emailHTML(content)
     message = MIMEText(content, "html", MAIL_ENCODING)
-    message["From"] = Header("区块链资讯机器人", MAIL_ENCODING)
-    message["To"] = Header("Reader", MAIL_ENCODING)
-    message["Subject"] = Header(title, MAIL_ENCODING)
+    message["From"] = Header(f"{MAIL_SENDER}")
+    message["To"] = Header("Reader")
+    message["Subject"] = Header(EMAIL_TITLE)
     try:
-        smtp_obj = smtplib.SMTP_SSL(MAIL_HOST, MAIL_PORT)
-        smtp_obj.login(MAIL_USER, MAIL_PASS)
-        smtp_obj.sendmail(MAIL_SENDER, MAIL_RECEIVER, message.as_string())
-        smtp_obj.quit()
+        with smtplib.SMTP(MAIL_HOST, MAIL_PORT) as smtp_obj:
+            # smtp_obj.set_debuglevel(1)  # 开启调试输出
+            # 显式开启TLS
+            smtp_obj.starttls()
+            smtp_obj.login(MAIL_USER, MAIL_PASS)
+            smtp_obj.sendmail(MAIL_SENDER, MAIL_RECEIVER, message.as_string())
     except Exception as e:
-        print('Email send fail:' + str(e))
+        print('Email send Exception:' + str(e))
     print('Email send success')
 
 def cut_word(text):
@@ -150,9 +152,9 @@ if __name__ == "__main__":
     print("----------test crawl_news start----------")
     pageNum = 5
     content = crawl_news(pageNum)
-    word_list = cut_word(content)
-    wcd = generate_wordcloud(word_list)
-    ax = plt_imshow(wcd,)
-    save_wordcloud(ax)
+    # word_list = cut_word(content)
+    # wcd = generate_wordcloud(word_list)
+    # ax = plt_imshow(wcd,)
+    # save_wordcloud(ax)
     send_email(EMAIL_TITLE, content)
     print("----------test crawl_news end----------")
